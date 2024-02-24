@@ -1,9 +1,7 @@
 OBJ	=	objs
 DEP	=	dep
 EXE = ${OBJ}/bin
-
 COMMIT := $(shell git log -1 --pretty=format:"%H")
-
 ARCH =
 ifeq ($m, 32)
 ARCH = -m32
