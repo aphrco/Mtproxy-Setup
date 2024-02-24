@@ -1,76 +1,68 @@
 # MTProxy
-Simple MT-Proto proxy
+نصب و راه اندازی  MT-Proto proxy
 
 ## Building
-Install dependencies, you would need common set of tools for building from source, and development packages for `openssl` and `zlib`.
-
-On Debian/Ubuntu:
+کد های زیر را بر اساس سیستم عامل وارد کنین 
+برای  Debian/Ubuntu:
 ```bash
 apt install git curl build-essential libssl-dev zlib1g-dev
 ```
-On CentOS/RHEL:
+برای  CentOS/RHEL:
 ```bash
 yum install openssl-devel zlib-devel
 yum groupinstall "Development Tools"
 ```
 
-Clone the repo:
+باید فایل را با دستور زیر به سرور منتقل کنید و وارد ریشه ی MTProxy شوید :
 ```bash
 git clone https://github.com/TelegramMessenger/MTProxy
 cd MTProxy
 ```
 
-To build, simply run `make`, the binary will be in `objs/bin/mtproto-proxy`:
-
+با استفاده از دستور زیر فولدر های مورد نیاز را اجرا کنید 
 ```bash
 make && cd objs/bin
 ```
 
-If the build has failed, you should run `make clean` before building it again.
-
+اگر مشکل بر خوردید ابتدا بررسی کنید که فایل objs/bin وجود دارد یا خیر و اگر وجود داشت حذف کنین 
 ## Running
-1. Obtain a secret, used to connect to telegram servers.
-```bash
-curl -s https://core.telegram.org/getProxySecret -o proxy-secret
+برای اجرا نیاز به کد سکرت دارید که با دستورات زیر این کد برای شما ساخته میشود : 
+```bashcurl -s https://core.telegram.org/getProxySecret -o proxy-secret
 ```
-2. Obtain current telegram configuration. It can change (occasionally), so we encourage you to update it once per day.
 ```bash
 curl -s https://core.telegram.org/getProxyConfig -o proxy-multi.conf
 ```
-3. Generate a secret to be used by users to connect to your proxy.
 ```bash
 head -c 16 /dev/urandom | xxd -ps
 ```
-4. Run `mtproto-proxy`:
+کد در این مرحله برای شما ساخته میشود و باید در مکانی ذخیره کنید 
+
+و با دستور زیر میتوانید پروکسی خود را اجرا کنید : 
 ```bash
 ./mtproto-proxy -u nobody -p 8888 -H 443 -S <secret> --aes-pwd proxy-secret proxy-multi.conf -M 1
 ```
-... where:
-- `nobody` is the username. `mtproto-proxy` calls `setuid()` to drop privilegies.
-- `443` is the port, used by clients to connect to the proxy.
-- `8888` is the local port. You can use it to get statistics from `mtproto-proxy`. Like `wget localhost:8888/stats`. You can only get this stat via loopback.
-- `<secret>` is the secret generated at step 3. Also you can set multiple secrets: `-S <secret1> -S <secret2>`.
-- `proxy-secret` and `proxy-multi.conf` are obtained at steps 1 and 2.
-- `1` is the number of workers. You can increase the number of workers, if you have a powerful server.
 
-Also feel free to check out other options using `mtproto-proxy --help`.
 
-5. Generate the link with following schema: `tg://proxy?server=SERVER_NAME&port=PORT&secret=SECRET` (or let the official bot generate it for you).
-6. Register your proxy with [@MTProxybot](https://t.me/MTProxybot) on Telegram.
-7. Set received tag with arguments: `-P <proxy tag>`
-8. Enjoy.
+دستور - `nobody` نام کاربری است. `mtproto-proxy` فراخوانی `setuid()` را برای رها کردن امتیازات انجام می‌دهد.
 
-## Random padding
-Due to some ISPs detecting MTProxy by packet sizes, random padding is
-added to packets if such mode is enabled.
+دستور - `443` پورت است که توسط مشتریان برای اتصال به پروکسی استفاده می‌شود.
 
-It's only enabled for clients which request it.
+دستور - `8888` پورت محلی است. شما می‌توانید از آن برای دریافت آمار از `mtproto-proxy` استفاده کنید. مانند `wget localhost:8888/stats`. شما فقط می‌توانید این آمار را از طریق اتصال محلی دریافت کنید.
 
-Add `dd` prefix to secret (`cafe...babe` => `ddcafe...babe`) to enable
-this mode on client side.
+دستور - `<secret>` رمزی است که در مرحله ۳ تولید شده است. همچنین می‌توانید چندین رمز تنظیم کنید: `-S <secret1> -S <secret2>`.
 
-## Systemd example configuration
-1. Create systemd service file (it's standard path for the most Linux distros, but you should check it before):
+دستور - `proxy-secret` و `proxy-multi.conf` در مراحل ۱ و ۲ به دست می‌آیند.
+
+دستور  - `1` تعداد کارگران است. می‌توانید تعداد کارگران را افزایش دهید، اگر سرور قدرتمندی دارید.
+
+همچنین میتوانید  سایر گزینه‌ها را با استفاده از `mtproto-proxy --help` بررسی کنید.
+
+۵. لینک را با طرح زیر تولید کنید: `tg://proxy?server=SERVER_NAME&port=PORT&secret=SECRET` (یا به ربات رسمی اجازه دهید آن را برای شما تولید کند).
+۶. پروکسی خود را با [@MTProxybot](https://t.me/MTProxybot) در تلگرام ثبت کنید.
+۷. تگ دریافتی خود را با آرگومان‌های زیر تنظیم کنید: `-P <proxy tag>`
+۸. لذت ببرید.
+پروکسی تا زمانی فعال است که بر روی سرور ران باشد و یا میتوانید از طریق مراحل زیر برای پروکسی خود سرویس ایجاد کنید که به صورت دائمی فعال باشد :
+
 ```bash
 nano /etc/systemd/system/MTProxy.service
 ```
